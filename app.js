@@ -8,6 +8,7 @@ app.use(express.json());
 app.use(cookieParser());
 require("dotenv").config();
 app.use(cors({ origin: ["http://localhost:5173"] ,credentials:true}));
+const PORT = process.env.PORT || 3000;
 
 // const Department = require("./Models/Departments");
 // const Course = require("./Models/Courses");
@@ -32,7 +33,7 @@ app.use('/api/admin',userAuthenticate)
 
 
 
-server.listen(5000, () => {
+server.listen(PORT, () => {
   console.log("Server running on port 5000");
 });
 
