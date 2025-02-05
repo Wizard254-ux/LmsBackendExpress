@@ -155,8 +155,11 @@ exports.loginLecturer = async (req, res) => {
       if (!isMatch) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
-  
+      
       const lecturer = lecAccount.lecturerRef[0];
+      if(!lecturer._id){
+        return res.status(401).json({ message: "Invalid Lecturer" });
+      }
   
       // Generate tokens
       const accessToken = jwt.sign(

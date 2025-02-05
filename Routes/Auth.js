@@ -3,6 +3,7 @@ const router=express.Router()
 router.use(express.json())
 
 const { upload, handleMulterError } = require('../Middleware/Multer');
+const {refreshToken}=require('../Middleware/MiddleAuth')
 const {loginLecturer,loginAdmin,logout,createLecturer,getLecturerUnits,downloadAssignmentFile,getStudentCourseDetails,loginStudent,createStudentAccount,getLecturerAssignments,createAssignment,getAssignmentFile,deleteAssignment}=require('../Controllers/Auth')
 
 // Route to create new assignment with multiple files
@@ -30,6 +31,7 @@ router.get('/getStudentCourseDetails',getStudentCourseDetails)
 router.get('/download/:fileName', downloadAssignmentFile);
 router.use('/logout', logout);
 router.use('/loginAdmin', loginAdmin);
+router.use('/refreshToken', refreshToken);
 
 
 // router.use('/refreshToken',refreshToken)
