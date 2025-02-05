@@ -14,8 +14,8 @@ const PORT = process.env.PORT || 3000;
 // const Course = require("./Models/Courses");
 // const Unit = require("./Models/Units");
 // const Lecturer = require("./Models/Lecturers");
-const Student = require("./Models/StudentProfile");
-const AdminAccount=require('./Models/Admin')
+// const Student = require("./Models/StudentProfile");
+// const AdminAccount=require('./Models/Admin')
 
 const routes1 = require("./Routes/Individualroutes");
 const userAuthenticate=require('./Routes/Auth')
