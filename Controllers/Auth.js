@@ -705,6 +705,7 @@ exports.loginStudent = async (req, res) => {
 exports.getStudentCourseDetails = async (req, res) => {
     try {
       // Step 1: Extract the student's ID from the JWT token in the cookie
+      console.log('Cookies:', req.cookies);
       const accessToken = req.cookies.accessToken;
   
       if (!accessToken) {
