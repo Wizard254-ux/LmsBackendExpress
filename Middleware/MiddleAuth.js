@@ -2,9 +2,9 @@ const express=require('express')
 const app=express()
 const jwt=require('jsonwebtoken')
 app.use(express.json())
-const bcrypt = require('bcryptjs');
+// const bcrypt = require('bcryptjs');
 const Lecturer = require('../Models/Lecturers');
-const LecAccount = require('../Models/LecAccount');
+// const LecAccount = require('../Models/LecAccount');
 
 
 

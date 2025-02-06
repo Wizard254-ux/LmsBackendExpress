@@ -20,7 +20,6 @@ router.get('/assignments/file/:fileName', getAssignmentFile);
 router.delete('/assignments/:id', deleteAssignment);
 router.get('/assignments/', getLecturerAssignments);
 
-module.exports = router;
 router.use('/loginLecAccount',loginLecturer)
 router.use('/createLecAccount',createLecturer)
 router.use('/getLecUnits',getLecturerUnits)
