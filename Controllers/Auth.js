@@ -164,7 +164,7 @@ exports.loginLecturer = async (req, res) => {
 
       const lec=Lecturer.findById(lecturer._id)
       if(lec){
-        console.log('lec found ',lec)
+        console.log('lec found ')
       }
   
       // Generate tokens
@@ -191,14 +191,14 @@ exports.loginLecturer = async (req, res) => {
       // Set tokens in HTTP-only cookies
       res.cookie('accessToken', accessToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: true,
         sameSite: 'None',
         maxAge:1 * 24 * 60 * 60 * 1000 // 1 day
       });
   
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: true,
         sameSite: 'None',
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
