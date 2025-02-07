@@ -3,6 +3,7 @@ const app=express()
 require("dotenv").config(); // Load environment variables
 const jwt=require('jsonwebtoken')
 app.use(express.json())
+const mongoose=require('mongoose')
 const bcrypt = require('bcryptjs');
 const Lecturer = require('../Models/Lecturers');
 const LecAccount = require('../Models/LecAccount');
@@ -251,11 +252,11 @@ exports.getLecturerUnits = async (req, res) => {
     }
 
     // Get lecturer ID from decoded token
-    const lecturerId = decodedToken.id;
+    const lecturerId =new mongoose.Types.ObjectId(decodedToken.id);
 
     // Find lecturer and populate units
     const lecturer = await Lecturer.findById(lecturerId);
-    console.log('founded lecturer ',lecturer)
+    console.log('founded lecturer ',lecturer,decodedToken,lecturerId)
 
     if (!lecturer) {
       return res.status(404).json({
