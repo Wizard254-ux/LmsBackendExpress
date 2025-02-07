@@ -255,6 +255,7 @@ exports.getLecturerUnits = async (req, res) => {
 
     // Find lecturer and populate units
     const lecturer = await Lecturer.findById(lecturerId);
+    console.log('founded lecturer ',lecturer)
 
     if (!lecturer) {
       return res.status(404).json({
