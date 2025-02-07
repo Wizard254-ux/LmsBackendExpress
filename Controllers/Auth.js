@@ -148,7 +148,7 @@ exports.loginLecturer = async (req, res) => {
       });
 
       if (!lecAccount) {
-        return res.status(404).json({ message: "Account not found" });
+        return res.status(404).json({ message: "Invalid Credentials" });
       }
   
       // Check password
@@ -637,7 +637,7 @@ exports.loginStudent = async (req, res) => {
             .populate('studentRef');
 
         if (!studentAccount) {
-            return res.status(404).json({ message: "Account not found" });
+            return res.status(404).json({ message: "Invalid credentials" });
         }
 
         // Verify password
@@ -855,7 +855,7 @@ exports.getStudentCourseDetails = async (req, res) => {
 
        
         if (!adminAccount) {
-            return res.status(404).json({ message: "Account not found" });
+            return res.status(404).json({ message: "Invalid credentials" });
         }
         // Verify password
         const isMatch = await bcrypt.compare(password, adminAccount.password);
