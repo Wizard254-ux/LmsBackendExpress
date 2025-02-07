@@ -161,6 +161,11 @@ exports.loginLecturer = async (req, res) => {
       if(!lecturer._id){
         return res.status(401).json({ message: "Invalid Lecturer" });
       }
+
+      const lec=Lecturer.findById(lecturer._id)
+      if(lec){
+        console.log('lec found ',lec)
+      }
   
       // Generate tokens
       const accessToken = jwt.sign(
