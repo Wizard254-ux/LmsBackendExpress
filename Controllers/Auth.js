@@ -12,6 +12,8 @@ const Assignment = require('../Models/Assignment');
 const Student=require('../Models/StudentProfile')
 const StudentAccount=require('../Models/StudentAccount')
 const AdminAccount=require('../Models/Admin')
+const Notes=require('../Models/Notes')
+const Units=require('../Models/Units')
 const fs=require('fs')
 const path=require('path')
 
@@ -912,7 +914,7 @@ exports.getStudentCourseDetails = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Student login error:', error);
+        console.error('admin login error:', error);
         res.status(500).json({
             message: "Internal server error",
             error: error.message
@@ -920,3 +922,436 @@ exports.getStudentCourseDetails = async (req, res) => {
     }
 };
 
+exports.postNotes = async (req, res) => {
+  try {
+      // Files are already handled by multer middleware
+      if (!req.files || req.files.length === 0) {
+          return res.status(400).json({
+              message: "No files uploaded"
+          });
+      }
+
+      // Get lecturer ID from JWT token
+      const accessToken = req.cookies.accessToken;
+      if (!accessToken) {
+          // Clean up uploaded files if authentication fails
+          req.files.forEach(file => {
+              fs.unlinkSync(file.path);
+          });
+          return res.status(401).json({ message: "Authentication required" });
+      }
+
+      const decodedToken = jwt.verify(accessToken, process.env.JWT_SECRET);
+      const lecturerId = decodedToken.id;
+
+      // Get array of filenames
+      const fileNames = req.files.map(file => file.filename);
+
+      // Create new course/assignment document
+      const notes = new Notes({
+          fileNames: fileNames,
+          Title: req.body.title,
+          lecRef: [lecturerId],
+          unitCode: req.body.unit,
+      });
+
+      await notes.save();
+
+      // Send success response
+      res.status(201).json({
+          message: "Assignment created successfully",
+          notes: {
+              id: notes._id,
+              title: notes.Title,
+              unitCode: notes.unitCode,
+              fileNames: notes.fileNames
+          }
+      });
+
+  } catch (error) {
+      // Clean up uploaded files if database operation fails
+      if (req.files) {
+          req.files.forEach(file => {
+              fs.unlinkSync(file.path);
+          });
+      }
+      console.error('Assignment creation error:', error);
+      res.status(500).json({
+          message: "Internal server error",
+          error: error.message
+      });
+  }
+};
+
+exports.deleteNotes = async (req, res) => {
+  try {
+    console.log(req.params.id)
+      const notes = await Notes.findById(req.params.id);
+      
+      if (!notes) {
+          return res.status(404).json({ message: "notes not found" });
+      }
+
+      // Delete associated files
+      notes.fileNames.forEach(fileName => {
+          const filePath = path.join(__dirname, '../uploads/notes', fileName);
+          if (fs.existsSync(filePath)) {
+              fs.unlinkSync(filePath);
+          }
+      });
+
+      // Delete assignment document
+      await Notes.findByIdAndDelete(req.params.id);
+
+      res.status(200).json({
+          message: "Notes and associated files deleted successfully"
+      });
+
+  } catch (error) {
+      console.error('Notes deletion error:', error);
+      res.status(500).json({
+          message: "Internal server error",
+          error: error.message
+      });
+  }
+};
+
+exports.getNotes = async (req, res) => {
+  try {
+      // Get lecturer ID from JWT token
+      const accessToken = req.cookies.accessToken;
+      if (!accessToken) {
+          return res.status(401).json({ 
+              message: "Authentication required" 
+          });
+      }
+
+      // Verify token and extract lecturer ID
+      const decodedToken = jwt.verify(accessToken, process.env.JWT_SECRET);
+      const lecturerId = decodedToken.id;
+
+      // Find all assignments where the lecturer is in lecRef array
+      const notes = await Notes.find({
+          lecRef: lecturerId
+      }).sort({ 
+          submissionDeadline: -1 // Sort by deadline in descending order
+      });
+
+      // Transform assignments data for client
+      const transformedNotes = notes.map(note => ({
+          id: note._id,
+          title: note.Title,
+          unitCode: note.unitCode,
+          fileNames: note.fileNames,
+          createdAt: note.createdAt
+      }));
+
+      // Group assignments by unit code for easier frontend handling
+      const groupedNotes = transformedNotes.reduce((acc, note) => {
+          if (!acc[note.unitCode]) {
+              acc[note.unitCode] = [];
+          }
+          acc[note.unitCode].push(note);
+          return acc;
+      }, {});
+
+      res.status(200).json({
+          success: true,
+          data: {
+              assignments: groupedNotes,
+              totalCount: 1
+          }
+      });
+
+  } catch (error) {
+      console.error('Error fetching lecturer Notes:', error);
+      
+      // Handle JWT verification errors specifically
+      if (error.name === 'JsonWebTokenError') {
+          return res.status(401).json({
+              message: "Invalid token",
+              error: error.message
+          });
+      }
+
+      // Handle expired JWT tokens
+      if (error.name === 'TokenExpiredError') {
+          return res.status(401).json({
+              message: "Token expired",
+              error: error.message
+          });
+      }
+
+      // Handle other errors
+      res.status(500).json({
+          success: false,
+          message: "Error fetching notes",
+          error: error.message
+      });
+  }
+};
+
+
+exports.getUnitDetails = async (req, res) => {
+  try {
+    const unitId = req.params.unitId;
+
+    // Fetch the unit details
+    const unit = await Units.findById(unitId);
+    
+    if (!unit) {
+      return res.status(404).json({ message: "Unit not found" });
+    }
+
+    // Find lecturers who have this unitId in their units array
+    const lecturers = await Lecturer.find({
+      units: { $in: [unitId] }
+    }).select('name email phoneNumber staffNumber')
+      .populate('department', 'name'); // Also populate department info if needed
+
+    // Find notes linked to this unit
+    const notes = await Notes.find({
+      unitCode: unit.code
+    }).populate({
+      path: 'lecRef',
+      select: 'name email staffNumber'
+    });
+
+    // Prepare the response
+    const response = {
+      unit: {
+        name: unit.name,
+        code: unit.code,
+        description: unit.description
+      },
+      lecturers: lecturers.map(lecturer => ({
+        id: lecturer._id,
+        name: lecturer.name,
+        email: lecturer.email,
+        phoneNumber: lecturer.phoneNumber,
+        staffNumber: lecturer.staffNumber,
+        department: lecturer.department ? lecturer.department.name : null
+      })),
+      notes: notes.map(note => ({
+        id: note._id,
+        title: note.Title,
+        fileNames: note.fileNames,
+        lecturers: note.lecRef.map(lec => ({
+          id: lec._id,
+          name: lec.name,
+          email: lec.email,
+          staffNumber: lec.staffNumber
+        }))
+      }))
+    };
+
+    res.status(200).json(response);
+  } catch (error) {
+    console.error("Error fetching unit details:", error);
+    res.status(500).json({ 
+      message: "Internal server error", 
+      error: error.message 
+    });
+  }
+};
+
+exports.downloadNotesFile = async (req, res) => {
+  try {
+    // Verify the JWT token
+    const token = req.cookies.accessToken;
+    if (!token) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decodedToken) {
+      return res.status(401).json({ message: "Invalid token" });
+    }
+
+    const fileName = req.params.fileName;
+    const filePath = path.join(__dirname, '../uploads/notes', fileName);
+
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ message: "File not found" });
+    }
+
+    res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
+    res.setHeader('Content-Type', 'application/octet-stream');
+
+    const fileStream = fs.createReadStream(filePath);
+    fileStream.pipe(res);
+
+  } catch (error) {
+    console.error('File download error:', error);
+    res.status(500).json({
+      message: "Internal server error",
+      error: error.message
+    });
+  }
+};
+
+
+exports.createCourse = async (req, res) => {
+  try {
+    const { name, code } = req.body;
+    
+    // Check if course with code already exists
+    const existingCourse = await Course.findOne({ code });
+    if (existingCourse) {
+      return res.status(400).json({ error: "Course code already exists" });
+    }
+
+    const course = new Course({
+      name,
+      code
+    });
+
+    const savedCourse = await course.save();
+    res.status(201).json(savedCourse);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getAllCourses = async (req, res) => {
+  try {
+    const courses = await Course.find().populate('units');
+    res.status(200).json(courses);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+// Unit Controllers
+exports.createUnit = async (req, res) => {
+  try {
+    const { name, code, description, courseId } = req.body;
+    
+    // Check if unit code already exists
+    const existingUnit = await Units.findOne({ code });
+    if (existingUnit) {
+      return res.status(400).json({ error: "Unit code already exists" });
+    }
+
+    const unit = new Units({
+      name,
+      code,
+      description
+    });
+
+    const savedUnit = await unit.save();
+
+    // Add unit to course
+    if (courseId) {
+      await Course.findByIdAndUpdate(
+        courseId,
+        { $push: { units: savedUnit._id } }
+      );
+    }
+
+    res.status(201).json(savedUnit);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getAllUnits = async (req, res) => {
+  try {
+    const units = await Units.find();
+    res.status(200).json(units);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+// Student Controllers
+exports.createStudent = async (req, res) => {
+  try {
+    const { studentNumber, courseCode, isActive } = req.body;
+    
+    // Check if student number already exists
+    const existingStudent = await Student.findOne({ studentNumber });
+    if (existingStudent) {
+      return res.status(400).json({ error: "Student number already exists" });
+    }
+
+    // Check if course exists
+    const courseExists = await Course.findOne({ code: courseCode });
+    if (!courseExists) {
+      return res.status(400).json({ error: "Course not found" });
+    }
+
+    const student = new Student({
+      studentNumber,
+      courseCode,
+      isActive
+    });
+
+    const savedStudent = await student.save();
+    res.status(201).json(savedStudent);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getAllStudents = async (req, res) => {
+  try {
+    const students = await Student.find();
+    res.status(200).json(students);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+exports.getStudentUnits = async (req, res) => {
+  try {
+      // Step 1: Extract the student's ID from the JWT token in the cookie
+      const accessToken = req.cookies.accessToken;
+
+      if (!accessToken) {
+          return res.status(401).json({ message: "Authentication required" });
+      }
+
+      // Verify the token and extract the student's ID
+      const decodedToken = jwt.verify(accessToken, process.env.JWT_SECRET);
+      const studentId = decodedToken.id;
+
+      // Step 2: Fetch the student's profile to get the course code
+      const student = await Student.findById(studentId);
+
+      if (!student) {
+          return res.status(404).json({ message: "Student not found" });
+      }
+
+      const courseCode = student.courseCode;
+
+      // Step 3: Fetch the course details using the course code
+      const course = await Course.findOne({ code: courseCode }).populate("units");
+
+      if (!course) {
+          return res.status(404).json({ message: "Course not found" });
+      }
+
+      // Step 4: Prepare the response with only the units
+      const response = {
+          courseName: course.name,
+          units: course.units.map((unit) => ({
+              id: unit._id,
+              name: unit.name,
+              code: unit.code,
+              description: unit.description,
+          })),
+      };
+
+      res.status(200).json(response);
+  } catch (error) {
+      console.error("Error fetching student course details:", error);
+
+      // Handle JWT verification errors
+      if (error.name === "JsonWebTokenError" || error.name === "TokenExpiredError") {
+          return res.status(401).json({ message: "Invalid or expired token" });
+      }
+
+      res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};

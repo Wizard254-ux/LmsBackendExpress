@@ -11,14 +11,16 @@ const Course = require("../Models/Courses");
 exports.createUnit = async (req, res) => {
   try {
     const { name, code, description, courseId } = req.body;
-    const unit = new Unit({ name, code, description });
-    await unit.save();
-
+    
     // Add the unit to the course
     const course = await Course.findById(courseId);
     if (!course) {
       return res.status(404).json({ error: "Course not found" });
     }
+
+    const unit = new Unit({ name, code, description });
+    await unit.save();
+    
     course.units.push(unit._id);
     await course.save();
 

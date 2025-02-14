@@ -28,6 +28,8 @@ app.use('/api/student',userAuthenticate)
 app.use('/api/file',userAuthenticate)
 app.use('/api/user',userAuthenticate)
 app.use('/api/admin',userAuthenticate)
+app.use('/api/lecNotes',userAuthenticate)
+
 
 
 
