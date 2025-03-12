@@ -824,13 +824,13 @@ exports.getStudentCourseDetails = async (req, res) => {
       res.clearCookie('accessToken', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production', // Ensure secure cookies in production
-        sameSite: 'strict',
+        sameSite: 'none',
       });
   
       res.clearCookie('refreshToken', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production', // Ensure secure cookies in production
-        sameSite: 'strict',
+        sameSite: 'none',
       });
   
       
@@ -891,14 +891,14 @@ exports.getStudentCourseDetails = async (req, res) => {
         res.cookie('accessToken', accessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            sameSite: 'none',
             maxAge: 1 * 24 * 60 * 60 * 1000 // 1 day
         });
 
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            sameSite: 'none',
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
 
