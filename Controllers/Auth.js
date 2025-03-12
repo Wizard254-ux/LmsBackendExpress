@@ -94,14 +94,14 @@ exports.createLecturer = async (req, res) => {
 
         res.cookie('accessToken', accessToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: true,
             sameSite: 'None',
             maxAge: 1 * 24 * 60 * 60 * 1000 // 1 day
           });
       
           res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: true,
             sameSite: 'None',
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
           });
@@ -193,14 +193,14 @@ exports.loginLecturer = async (req, res) => {
       // Set tokens in HTTP-only cookies
       res.cookie('accessToken', accessToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: true,
         sameSite: 'None',
         maxAge:1 * 24 * 60 * 60 * 1000 // 1 day
       });
   
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: true,
         sameSite: 'None',
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
@@ -594,14 +594,14 @@ exports.createStudentAccount = async (req, res) => {
         // Set cookies
         res.cookie('accessToken', accessToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: true,
             sameSite: 'None',
             maxAge: 1 * 24 * 60 * 60 * 1000 // 1 day
         });
 
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: true,
             sameSite: 'None',
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
@@ -674,14 +674,14 @@ exports.loginStudent = async (req, res) => {
         // Set cookies
         res.cookie('accessToken', accessToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: true,
             sameSite: 'None',
             maxAge: 1 * 24 * 60 * 60 * 1000 // 1 day
         });
 
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: true,
             sameSite: 'None',
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
@@ -823,14 +823,14 @@ exports.getStudentCourseDetails = async (req, res) => {
       // Clear the access token and refresh token cookies
       res.clearCookie('accessToken', {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production', // Ensure secure cookies in production
-        sameSite: 'none',
+        secure: true, // Ensure secure cookies in production
+        sameSite: 'None',
       });
   
       res.clearCookie('refreshToken', {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production', // Ensure secure cookies in production
-        sameSite: 'none',
+        secure: true, // Ensure secure cookies in production
+        sameSite: 'None',
       });
   
       
@@ -890,15 +890,15 @@ exports.getStudentCourseDetails = async (req, res) => {
         // Set cookies
         res.cookie('accessToken', accessToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'none',
+            secure: true,
+            sameSite: 'None',
             maxAge: 1 * 24 * 60 * 60 * 1000 // 1 day
         });
 
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'none',
+            secure: true,
+            sameSite: 'None',
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
 
