@@ -7,6 +7,7 @@ exports.verifyAdmin = async (req, res, next) => {
         const accessToken = req.cookies.accessToken;
 
         if (!accessToken) {
+            console.log('no token provided')
             return res.status(401).json({ message: "No token provided" });
         }
 
@@ -16,6 +17,7 @@ exports.verifyAdmin = async (req, res, next) => {
 
             // Check if the user is an admin
             if (decoded.role !== 'admin') {
+                console.log("Access denied. Admin privileges required.")
                 return res.status(403).json({ message: "Access denied. Admin privileges required." });
             }
 
@@ -28,15 +30,18 @@ exports.verifyAdmin = async (req, res, next) => {
                 const refreshToken = req.cookies.refreshToken;
 
                 if (!refreshToken) {
+                    console.log("Session expired. Please login again.")
                     return res.status(401).json({ message: "Session expired. Please login again." });
                 }
 
                 try {
                     // Verify refresh token
                     const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-
+                   console.log(decoded)
                     // Check if the user is an admin
                     if (decoded.role !== 'admin') {
+                        console.log("Access denied. Admin privileges required.")
+
                         return res.status(403).json({ message: "Access denied. Admin privileges required." });
                     }
 
@@ -63,9 +68,11 @@ exports.verifyAdmin = async (req, res, next) => {
                     req.user = decoded;
                     next();
                 } catch (refreshError) {
+                    console.log("Invalid refresh token")
                     return res.status(401).json({ message: "Invalid refresh token. Please login again." });
                 }
             } else {
+                console.log("Invalid refresh token")
                 return res.status(401).json({ message: "Invalid token" });
             }
         }
