@@ -7,7 +7,12 @@ const bcrypt=require('bcryptjs')
 app.use(express.json());
 app.use(cookieParser());
 require("dotenv").config();
-app.use(cors({ origin: ["http://localhost:5173","https://learnig-management-sytem.vercel.app"] ,credentials:true}));
+app.use(cors({ 
+  origin: ["http://localhost:5173", "https://learnig-management-sytem.vercel.app"],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 const PORT = process.env.PORT || 3000;
 
 // const Department = require("./Models/Departments");

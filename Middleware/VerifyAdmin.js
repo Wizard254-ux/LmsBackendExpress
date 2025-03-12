@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 exports.verifyAdmin = async (req, res, next) => {
     try {
         // Get access token from cookies
+        console.log('cookies ',req.cookies)
         const accessToken = req.cookies.accessToken;
 
         if (!accessToken) {
@@ -60,7 +61,7 @@ exports.verifyAdmin = async (req, res, next) => {
                     res.cookie('accessToken', newAccessToken, {
                         httpOnly: true,
                         secure: process.env.NODE_ENV === 'production',
-                        sameSite: 'strict',
+                        sameSite: 'none',
                         maxAge: 1 * 24 * 60 * 60 * 1000 // 1 day
                     });
 
